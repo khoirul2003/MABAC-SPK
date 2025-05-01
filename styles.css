@@ -32,7 +32,7 @@ th, td {
     text-align: center;
 }
 
-input[type="number"], input[type="file"] {
+input[type="number"] {
     width: 100%;
     padding: 10px;
     margin: 5px 0;

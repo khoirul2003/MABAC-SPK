@@ -6,19 +6,18 @@ function generateTables() {
 
   // Create the criteria weights table
   const criteriaTable = document.getElementById("criteriaWeightsTable");
-  criteriaTable.innerHTML = ""; // Clear any previous content
+  criteriaTable.innerHTML = "";
   for (let i = 0; i < numCriteria; i++) {
     let row = criteriaTable.insertRow();
     let cell = row.insertCell(0);
     cell.innerHTML = `<label for="weight${i}">Weight for C${i + 1}: </label><input type="number" id="weight${i}" min="0" step="0.01" placeholder="Enter weight" />`;
   }
 
-  // Show the criteria form
   document.getElementById("criteriaForm").style.display = "block";
 
   // Create the decision matrix table
   const decisionMatrixTable = document.getElementById("decisionMatrixTable");
-  decisionMatrixTable.innerHTML = ""; // Clear any previous content
+  decisionMatrixTable.innerHTML = "";
   for (let i = 0; i < numAlternatives; i++) {
     let row = decisionMatrixTable.insertRow();
     let cell = row.insertCell(0);
@@ -28,18 +27,15 @@ function generateTables() {
     }
   }
 
-  // Show the decision matrix form
   document.getElementById("decisionMatrixForm").style.display = "block";
 }
 
 function calculateMatrices() {
-  // Retrieve the weights
   const weights = [];
   for (let i = 0; i < numCriteria; i++) {
     weights.push(parseFloat(document.getElementById(`weight${i}`).value));
   }
 
-  // Retrieve the decision matrix values
   const decisionMatrix = [];
   for (let i = 0; i < numAlternatives; i++) {
     const row = [];
@@ -84,15 +80,23 @@ function normalizeMatrix(matrix) {
 
 function calculateWeightedMatrix(matrix, weights) {
   return matrix.map((row) => {
-    return row.map((value, i) => value * weights[i]);
+    return row.map((value, i) => value * weights[i]); // Multiply each matrix element by the corresponding weight
   });
 }
 
 function calculateBoundaryApproximateArea(matrix) {
-  return matrix[0].map((_, j) => {
-    const product = matrix.reduce((acc, row) => acc * row[j], 1);
+  const boundaryMatrix = matrix[0].map((_, i) => {
+    // Calculate the product of weighted values for each criterion (i)
+    const product = matrix.map((row) => row[i]).reduce((acc, value) => acc * value, 1);
+
+    // Return the geometric mean of the product (raise to power of 1/m)
     return Math.pow(product, 1 / matrix.length);
   });
+
+  // Debugging output
+  console.log("Boundary Approximate Area Matrix (G):", boundaryMatrix);
+
+  return boundaryMatrix;
 }
 
 function calculateDistanceMatrix(matrix, G) {
@@ -113,7 +117,6 @@ function calculateRankings(Q) {
 function displayResults(X, normalizedMatrix, weightedMatrix, G, Q, rankings) {
   const resultsDiv = document.getElementById("results");
   let html = "<h3>Formation of the Result Matrix (X)</h3><table><tr><th>Alternatives</th>";
-
   for (let i = 0; i < numCriteria; i++) {
     html += `<th>C${i + 1}</th>`;
   }
@@ -186,46 +189,4 @@ function displayResults(X, normalizedMatrix, weightedMatrix, G, Q, rankings) {
   html += "</table>";
 
   resultsDiv.innerHTML = html;
-}
-
-function importExcel() {
-  const fileInput = document.getElementById("fileInput");
-  const file = fileInput.files[0];
-  if (!file) {
-    console.log("No file selected.");
-    return;
-  }
-
-  const reader = new FileReader();
-  reader.onload = function (e) {
-    const data = e.target.result;
-    console.log("File loaded:", file.name);
-
-    const workbook = XLSX.read(data, { type: "binary" });
-    console.log("Workbook read:", workbook);
-
-    const criteriaSheet = workbook.Sheets["Criteria Weights"];
-    const decisionSheet = workbook.Sheets["Decision Matrix"];
-
-    const criteriaData = XLSX.utils.sheet_to_json(criteriaSheet, { header: 1 });
-    const decisionData = XLSX.utils.sheet_to_json(decisionSheet, { header: 1 });
-
-    console.log("Criteria Data:", criteriaData);
-    console.log("Decision Data:", decisionData);
-
-    // Parse and format data correctly (comma to period)
-    const criteriaWeights = criteriaData[1].map((weight) => parseFloat(weight.replace(",", ".")));
-    console.log("Parsed Criteria Weights:", criteriaWeights);
-
-    const decisionMatrix = decisionData.slice(1).map((row) => {
-      return row.slice(1).map((value) => parseFloat(value.replace(",", ".")));
-    });
-    console.log("Parsed Decision Matrix:", decisionMatrix);
-  };
-
-  reader.onerror = function (error) {
-    console.log("Error reading file:", error);
-  };
-
-  reader.readAsBinaryString(file);
 }
