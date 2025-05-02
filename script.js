@@ -4,26 +4,34 @@ function generateTables() {
   numCriteria = parseInt(document.getElementById("numCriteria").value);
   numAlternatives = parseInt(document.getElementById("numAlternatives").value);
 
-  // Create the criteria weights table
   const criteriaTable = document.getElementById("criteriaWeightsTable");
   criteriaTable.innerHTML = "";
   for (let i = 0; i < numCriteria; i++) {
     let row = criteriaTable.insertRow();
-    let cell = row.insertCell(0);
-    cell.innerHTML = `<label for="weight${i}">Weight for C${i + 1}: </label><input type="number" id="weight${i}" min="0" step="0.01" placeholder="Enter weight" />`;
+
+    // Name for Criteria
+    let nameCell = row.insertCell(0);
+    nameCell.innerHTML = `<label for="criterionName${i}" class="form-label">Name for C${i + 1}:</label><input type="text" id="criterionName${i}" class="form-control" placeholder="Enter name for C${i + 1}">`;
+
+    // Weight for Criteria
+    let weightCell = row.insertCell(1);
+    weightCell.innerHTML = `<label for="weight${i}" class="form-label">Weight for C${i + 1}:</label><input type="number" id="weight${i}" class="form-control" min="0" step="0.01" placeholder="Enter weight">`;
   }
 
   document.getElementById("criteriaForm").style.display = "block";
 
-  // Create the decision matrix table
   const decisionMatrixTable = document.getElementById("decisionMatrixTable");
   decisionMatrixTable.innerHTML = "";
   for (let i = 0; i < numAlternatives; i++) {
     let row = decisionMatrixTable.insertRow();
-    let cell = row.insertCell(0);
-    cell.innerHTML = `<strong>Alternative A${i + 1}</strong>`;
+
+    // Name for Alternative
+    let nameCell = row.insertCell(0);
+    nameCell.innerHTML = `<label for="alternativeName${i}" class="form-label">Name for A${i + 1}:</label><input type="text" id="alternativeName${i}" class="form-control" placeholder="Enter name for A${i + 1}">`;
+
+    // Decision Matrix Values
     for (let j = 0; j < numCriteria; j++) {
-      row.insertCell(j + 1).innerHTML = `<input type="number" id="value${i}_${j}" placeholder="Enter value" />`;
+      row.insertCell(j + 1).innerHTML = `<input type="number" id="value${i}_${j}" class="form-control" placeholder="Enter value">`;
     }
   }
 
@@ -36,6 +44,11 @@ function calculateMatrices() {
     weights.push(parseFloat(document.getElementById(`weight${i}`).value));
   }
 
+  const criteriaNames = [];
+  for (let i = 0; i < numCriteria; i++) {
+    criteriaNames.push(document.getElementById(`criterionName${i}`).value || `C${i + 1}`);
+  }
+
   const decisionMatrix = [];
   for (let i = 0; i < numAlternatives; i++) {
     const row = [];
@@ -45,26 +58,19 @@ function calculateMatrices() {
     decisionMatrix.push(row);
   }
 
-  // Stage 1: Formation of the Result Matrix (X)
+  const alternativeNames = [];
+  for (let i = 0; i < numAlternatives; i++) {
+    alternativeNames.push(document.getElementById(`alternativeName${i}`).value || `A${i + 1}`);
+  }
+
   const X = decisionMatrix;
-
-  // Stage 2: Normalization of the Decision Matrix (X)
   const normalizedMatrix = normalizeMatrix(X);
-
-  // Stage 3: Calculation of the Weighted Matrix (V)
   const weightedMatrix = calculateWeightedMatrix(normalizedMatrix, weights);
-
-  // Stage 4: Boundary Approximate Area Matrix (G)
   const G = calculateBoundaryApproximateArea(weightedMatrix);
-
-  // Stage 5: Calculation of the Distance Matrix (Q)
   const Q = calculateDistanceMatrix(weightedMatrix, G);
-
-  // Stage 6: Alternative Ranking
   const rankings = calculateRankings(Q);
 
-  // Display Results
-  displayResults(X, normalizedMatrix, weightedMatrix, G, Q, rankings);
+  displayResults(X, normalizedMatrix, weightedMatrix, G, Q, rankings, criteriaNames, alternativeNames);
 }
 
 function normalizeMatrix(matrix) {
@@ -72,7 +78,7 @@ function normalizeMatrix(matrix) {
     return row.map((value, j) => {
       const max = Math.max(...matrix.map((row) => row[j]));
       const min = Math.min(...matrix.map((row) => row[j]));
-      return (value - min) / (max - min); // Benefit criteria normalization
+      return (value - min) / (max - min);
     });
   });
   return normalizedMatrix;
@@ -80,22 +86,15 @@ function normalizeMatrix(matrix) {
 
 function calculateWeightedMatrix(matrix, weights) {
   return matrix.map((row) => {
-    return row.map((value, i) => value * weights[i]); // Multiply each matrix element by the corresponding weight
+    return row.map((value, i) => value * weights[i]);
   });
 }
 
 function calculateBoundaryApproximateArea(matrix) {
   const boundaryMatrix = matrix[0].map((_, i) => {
-    // Calculate the product of weighted values for each criterion (i)
-    const product = matrix.map((row) => row[i]).reduce((acc, value) => acc * value, 1);
-
-    // Return the geometric mean of the product (raise to power of 1/m)
+    const product = matrix.map((row) => row[i]).reduce((acc, value) => acc * (value || 1), 1);
     return Math.pow(product, 1 / matrix.length);
   });
-
-  // Debugging output
-  console.log("Boundary Approximate Area Matrix (G):", boundaryMatrix);
-
   return boundaryMatrix;
 }
 
@@ -114,79 +113,83 @@ function calculateRankings(Q) {
   return rankings;
 }
 
-function displayResults(X, normalizedMatrix, weightedMatrix, G, Q, rankings) {
+function displayResults(X, normalizedMatrix, weightedMatrix, G, Q, rankings, criteriaNames, alternativeNames) {
   const resultsDiv = document.getElementById("results");
-  let html = "<h3>Formation of the Result Matrix (X)</h3><table><tr><th>Alternatives</th>";
+  let html = "<h3>Formation of the Result Matrix (X)</h3><div class='table-responsive'><table class='table table-striped table-bordered'><tr><th>Alternatives</th>";
   for (let i = 0; i < numCriteria; i++) {
-    html += `<th>C${i + 1}</th>`;
+    html += `<th>${criteriaNames[i]}</th>`;
   }
   html += "</tr>";
 
   X.forEach((row, index) => {
-    html += `<tr><td>A${index + 1}</td>`;
+    html += `<tr><td>${alternativeNames[index]}</td>`;
     row.forEach((value) => {
       html += `<td>${value}</td>`;
     });
     html += "</tr>";
   });
-  html += "</table>";
+  html += "</table></div>";
 
-  html += "<h3>Normalized Decision Matrix (X)</h3><table><tr><th>Alternatives</th>";
+  html += "<h3>Normalized Decision Matrix (X)</h3><div class='table-responsive'><table class='table table-striped table-bordered'><tr><th>Alternatives</th>";
   for (let i = 0; i < numCriteria; i++) {
-    html += `<th>C${i + 1}</th>`;
+    html += `<th>${criteriaNames[i]}</th>`;
   }
   html += "</tr>";
 
   normalizedMatrix.forEach((row, index) => {
-    html += `<tr><td>A${index + 1}</td>`;
+    html += `<tr><td>${alternativeNames[index]}</td>`;
     row.forEach((value) => {
       html += `<td>${value}</td>`;
     });
     html += "</tr>";
   });
-  html += "</table>";
+  html += "</table></div>";
 
-  html += "<h3>Weighted Matrix (V)</h3><table><tr><th>Alternatives</th>";
+  html += "<h3>Weighted Matrix (V)</h3><div class='table-responsive'><table class='table table-striped table-bordered'><tr><th>Alternatives</th>";
   for (let i = 0; i < numCriteria; i++) {
-    html += `<th>C${i + 1}</th>`;
+    html += `<th>${criteriaNames[i]}</th>`;
   }
   html += "</tr>";
 
   weightedMatrix.forEach((row, index) => {
-    html += `<tr><td>A${index + 1}</td>`;
+    html += `<tr><td>${alternativeNames[index]}</td>`;
     row.forEach((value) => {
       html += `<td>${value}</td>`;
     });
     html += "</tr>";
   });
-  html += "</table>";
+  html += "</table></div>";
 
-  html += "<h3>Boundary Approximate Area Matrix (G)</h3><table><tr><th>C1</th><th>C2</th><th>C3</th><th>C4</th></tr><tr>";
+  html += "<h3>Boundary Approximate Area Matrix (G)</h3><div class='table-responsive'><table class='table table-striped table-bordered'><tr>";
+  for (let i = 0; i < numCriteria; i++) {
+    html += `<th>${criteriaNames[i]}</th>`;
+  }
+  html += "</tr><tr>";
   G.forEach((value) => {
     html += `<td>${value}</td>`;
   });
-  html += "</tr></table>";
+  html += "</tr></table></div>";
 
-  html += "<h3>Distance Matrix (Q)</h3><table><tr><th>Alternatives</th>";
+  html += "<h3>Distance Matrix (Q)</h3><div class='table-responsive'><table class='table table-striped table-bordered'><tr><th>Alternatives</th>";
   for (let i = 0; i < numCriteria; i++) {
-    html += `<th>C${i + 1}</th>`;
+    html += `<th>${criteriaNames[i]}</th>`;
   }
   html += "</tr>";
 
   Q.forEach((row, index) => {
-    html += `<tr><td>A${index + 1}</td>`;
+    html += `<tr><td>${alternativeNames[index]}</td>`;
     row.forEach((value) => {
       html += `<td>${value}</td>`;
     });
     html += "</tr>";
   });
-  html += "</table>";
+  html += "</table></div>";
 
-  html += "<h3>Alternative Rankings</h3><table><tr><th>Alternative</th><th>Rank</th></tr>";
+  html += "<h3>Alternative Rankings</h3><div class='table-responsive'><table class='table table-striped table-bordered'><tr><th>Alternative</th><th>Rank</th></tr>";
   rankings.forEach((ranking) => {
     html += `<tr><td>${ranking.alternative}</td><td>${ranking.rank}</td></tr>`;
   });
-  html += "</table>";
+  html += "</table></div>";
 
   resultsDiv.innerHTML = html;
 }

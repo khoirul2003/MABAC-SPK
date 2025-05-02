@@ -5,38 +5,156 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MABAC Method Implementation</title>
-    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+      body {
+        background-color: #f8f9fa;
+        /* Light background for a soft look */
+        font-family: 'Arial', sans-serif;
+      }
+
+      .container {
+        max-width: 900px;
+        padding: 40px;
+        background-color: #ffffff;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        border-radius: 10px;
+      }
+
+      h1,
+      h2,
+      h3 {
+        color: #343a40;
+        /* Dark grey text for headings */
+      }
+
+      h3 {
+        font-size: 1.2rem;
+      }
+
+      .btn-primary {
+        background-color: #5f6368;
+        /* Dark grey-blue for primary buttons */
+        border-color: #5f6368;
+      }
+
+      .btn-primary:hover {
+        background-color: #4e5358;
+        /* Darker shade for hover effect */
+        border-color: #4e5358;
+      }
+
+      .btn-success {
+        background-color: #3e8e41;
+        /* Soft green for calculate button */
+        border-color: #3e8e41;
+      }
+
+      .btn-success:hover {
+        background-color: #356d32;
+        /* Darker green for hover effect */
+        border-color: #356d32;
+      }
+
+      .table {
+        border-color: #dee2e6;
+        /* Soft border for tables */
+      }
+
+      .table-striped tbody tr:nth-of-type(odd) {
+        background-color: #f1f1f1;
+        /* Light grey rows for better readability */
+      }
+
+      .form-label {
+        color: #495057;
+        /* Darker label text */
+      }
+
+      .form-control {
+        background-color: #f4f6f7;
+        /* Subtle light grey background for input fields */
+        border-color: #ced4da;
+        /* Soft borders */
+      }
+
+      .form-control:focus {
+        border-color: #80bdff;
+        /* Focused input fields have a soft blue border */
+        box-shadow: none;
+        /* Remove default shadow on focus */
+      }
+
+      .table th,
+      .table td {
+        vertical-align: middle;
+        text-align: center;
+        padding: 10px;
+      }
+
+      /* Responsive tables */
+      .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      /* Add some spacing between the results */
+      .table th {
+        background-color: #e9ecef;
+        /* Light grey background for table headers */
+      }
+
+      .table td {
+        word-wrap: break-word;
+        /* Ensures long text breaks correctly */
+      }
+
+      .container {
+        max-width: 100%;
+      }
+    </style>
   </head>
 
   <body>
-    <div class="container">
-      <h1>MABAC Method Implementation</h1>
+    <div class="container mt-4">
+      <h1 class="text-center mb-4">MABAC Method Implementation</h1>
 
-      <label for="numCriteria">Number of Criteria: </label>
-      <input type="number" id="numCriteria" placeholder="Enter number of criteria">
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <label for="numCriteria" class="form-label">Number of Criteria:</label>
+          <input type="number" id="numCriteria" class="form-control" placeholder="Enter number of criteria">
+        </div>
+        <div class="col-md-6">
+          <label for="numAlternatives" class="form-label">Number of Alternatives:</label>
+          <input type="number" id="numAlternatives" class="form-control" placeholder="Enter number of alternatives">
+        </div>
+      </div>
 
-      <label for="numAlternatives">Number of Alternatives: </label>
-      <input type="number" id="numAlternatives" placeholder="Enter number of alternatives">
-
-      <button onclick="generateTables()">Generate Tables</button>
+      <button onclick="generateTables()" class="btn btn-primary w-100 mb-3">Generate Tables</button>
 
       <div id="criteriaForm" style="display: none;">
-        <h2>Input Weights for Criteria</h2>
-        <table id="criteriaWeightsTable"></table>
+        <h3 class="mb-3">Input Weights and Names for Criteria</h3>
+        <div class="table-responsive">
+          <table id="criteriaWeightsTable" class="table table-bordered mb-3"></table>
+        </div>
       </div>
 
       <div id="decisionMatrixForm" style="display: none;">
-        <h2>Input Decision Matrix</h2>
-        <table id="decisionMatrixTable"></table>
+        <h3 class="mb-3">Input Decision Matrix and Names for Alternatives</h3>
+        <div class="table-responsive">
+          <table id="decisionMatrixTable" class="table table-bordered mb-3"></table>
+        </div>
       </div>
 
-      <button onclick="calculateMatrices()">Calculate MABAC</button>
+      <button onclick="calculateMatrices()" class="btn btn-success w-100 mb-3">Calculate MABAC</button>
 
-      <h2>Results</h2>
+      <h2 class="mt-4">Results</h2>
       <div id="results"></div>
     </div>
 
     <script src="script.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
   </body>
 
 </html>
