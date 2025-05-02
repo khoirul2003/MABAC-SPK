@@ -68,7 +68,7 @@ function calculateMatrices() {
   const weightedMatrix = calculateWeightedMatrix(normalizedMatrix, weights);
   const G = calculateBoundaryApproximateArea(weightedMatrix);
   const Q = calculateDistanceMatrix(weightedMatrix, G);
-  const rankings = calculateRankings(Q);
+  const rankings = calculateRankings(Q, alternativeNames);
 
   displayResults(X, normalizedMatrix, weightedMatrix, G, Q, rankings, criteriaNames, alternativeNames);
 }
@@ -86,7 +86,7 @@ function normalizeMatrix(matrix) {
 
 function calculateWeightedMatrix(matrix, weights) {
   return matrix.map((row) => {
-    return row.map((value, i) => value * weights[i]);
+    return row.map((value, i) => (value * weights[i])+weights[i]);
   });
 }
 
@@ -100,16 +100,26 @@ function calculateBoundaryApproximateArea(matrix) {
 
 function calculateDistanceMatrix(matrix, G) {
   return matrix.map((row, i) => {
-    return row.map((value, j) => value - G[j]);
+    return row.map((value, j) => Math.abs(value - G[j]));
   });
 }
 
-function calculateRankings(Q) {
+function calculateRankings(Q, alternativeNames) {
   const scores = Q.map((row) => row.reduce((sum, value) => sum + value, 0));
+
   const rankings = scores
-    .map((score, index) => ({ score, index }))
-    .sort((a, b) => b.score - a.score)
-    .map((item, index) => ({ alternative: `A${item.index + 1}`, rank: index + 1 }));
+    .map((score, index) => ({
+      alternative: alternativeNames[index], 
+      score, 
+      index, 
+    }))
+    .sort((a, b) => b.score - a.score) 
+    .map((item, index) => ({
+      alternative: item.alternative,
+      score: item.score, 
+      rank: index + 1,
+    }));
+
   return rankings;
 }
 
@@ -185,9 +195,10 @@ function displayResults(X, normalizedMatrix, weightedMatrix, G, Q, rankings, cri
   });
   html += "</table></div>";
 
-  html += "<h3>Alternative Rankings</h3><div class='table-responsive'><table class='table table-striped table-bordered'><tr><th>Alternative</th><th>Rank</th></tr>";
+  html += "<h3>Alternative Rankings</h3><div class='table-responsive'><table class='table table-striped table-bordered'><tr><th>Alternative</th><th>Score</th><th>Rank</th></tr>";
+
   rankings.forEach((ranking) => {
-    html += `<tr><td>${ranking.alternative}</td><td>${ranking.rank}</td></tr>`;
+    html += `<tr><td>${ranking.alternative}</td><td>${ranking.score}</td><td>${ranking.rank}</td></tr>`;
   });
   html += "</table></div>";
 
