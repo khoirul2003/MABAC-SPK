@@ -25,11 +25,11 @@ function generateTables() {
   for (let i = 0; i < numAlternatives; i++) {
     let row = decisionMatrixTable.insertRow();
 
-    // Name for Alternative
+    
     let nameCell = row.insertCell(0);
     nameCell.innerHTML = `<label for="alternativeName${i}" class="form-label">Name for A${i + 1}:</label><input type="text" id="alternativeName${i}" class="form-control" placeholder="Enter name for A${i + 1}">`;
 
-    // Decision Matrix Values
+    
     for (let j = 0; j < numCriteria; j++) {
       row.insertCell(j + 1).innerHTML = `<input type="number" id="value${i}_${j}" class="form-control" placeholder="Enter value">`;
     }
